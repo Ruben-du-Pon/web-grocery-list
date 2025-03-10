@@ -76,11 +76,14 @@ def update_groceries(mode: Literal["list", "groceries"],
 # Expander to show the default grocery list and add items to the current list
 with st.expander(label="Add grocery item"):
     # Drop-down menu to select the category
-    st.session_state["category"] = st.selectbox("Select category",
-                                                (CATEGORIES),
-                                                index=None,
-                                                key="category",
-                                                placeholder="Select category")
+    category = st.selectbox("Select category",
+                            (CATEGORIES),
+                            index=None,
+                            key="category",
+                            placeholder="Select category")
+
+    if category:
+        st.session_state["category"] = category
 
     # Text input to add a new grocery item
     new_grocery_input = st.text_input(label=" ",
