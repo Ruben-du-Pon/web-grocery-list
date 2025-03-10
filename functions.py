@@ -294,25 +294,19 @@ def split_categories(groceries: dict[str, list],
     current_items = 0
     col1_categories = []
     col2_categories = []
+    col3_categories = []
 
     for category in categories:
         items_in_category = len(groceries[category])
         if current_items < target_items:
             col1_categories.append(category)
             current_items += items_in_category
-        else:
-            break
-
-    current_items = 0
-    for category in categories:
-        items_in_category = len(groceries[category])
-        if current_items < target_items:
+        elif current_items < 2 * target_items:
             col2_categories.append(category)
             current_items += items_in_category
         else:
-            break
+            col3_categories.append(category)
 
-    col3_categories = [cat for cat in categories if cat not in col1_categories]
     return col1_categories, col2_categories, col3_categories
 
 
