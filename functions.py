@@ -1,7 +1,6 @@
 import logging
 import streamlit as st
 from supabase import create_client
-from typing import Any
 from config import CATEGORIES, SUPABASE_DEFAULT_TABLE, SUPABASE_GROCERY_TABLE
 
 # Configure logging
@@ -73,22 +72,20 @@ def get_list() -> list[str]:
         return []
 
 
-def write_list(grocery_list: list[str]) -> None:
+def write_list() -> None:
     """
     Save the grocery list to Supabase.
 
     Args:
-        grocery_list (list[str]): List of grocery items to save.
+        None
 
     Returns:
         None
 
     Raises:
         Shows Streamlit error message if database operation fails.
-
-    Example:
-        >>> write_list(['Milk', 'Bread', 'Eggs'])
     """
+    grocery_list = st.session_state["grocery_list"]
     try:
         supabase.table(SUPABASE_GROCERY_TABLE).upsert({
             'id': 1,  # Use a constant ID for the single record
@@ -128,22 +125,20 @@ def get_groceries() -> dict[str, list]:
         return {}
 
 
-def write_groceries(groceries: dict[str, list]) -> None:
+def write_groceries() -> None:
     """
     Write the groceries dictionary to a supabase table.
 
     Arguments:
-        groceries -- A dictionary with categories as keys and lists of grocery items as values.
+        None
 
     Returns:
         None
 
     Raises:
         Shows Streamlit error message if database operation fails.
-
-    Example:
-        >>> write_groceries({'Fresh Produce': ['Apples', 'Bananas'], 'Meat & Seafood': ['Chicken', 'Fish']})
     """  # noqa
+    groceries = st.session_state["groceries"]
     try:
         supabase.table(SUPABASE_DEFAULT_TABLE).upsert({
             'id': 1,  # Use a constant ID for the single record
@@ -155,64 +150,58 @@ def write_groceries(groceries: dict[str, list]) -> None:
 
 
 # Grocery Management Functions
-def add_default_groceries(category: str, session_state: dict[str, Any],
-                          groceries: dict[str, list]) -> dict[str, list]:
+def add_default_groceries() -> None:
     """
     Add a new grocery item to the default grocery list
 
     Arguments:
-        category -- The category name
-        session_state -- The Streamlit session state
-        groceries -- The dictionary of grocery categories and items
-
-    Returns:
-        groceries -- The updated dictionary of grocery categories and items
-    """
-    if "new_grocery" in session_state:
-        grocery = session_state["new_grocery"]
-        if not groceries[category]:
-            groceries[category] = []
-        if grocery not in groceries[category]:
-            groceries[category].append(grocery.title())
-    return groceries
-
-
-def remove_groceries(groceries: dict[str, list],
-                     added_groceries: list[str]) -> dict[str, list]:
-    """
-    Remove grocery items from the default grocery list.
-
-    Arguments:
-        groceries -- The dictionary of grocery categories and items
-        added_groceries -- The list of added groceries
-
-    Returns:
-        groceries -- The updated dictionary of grocery categories and items
-    """
-    for grocery in added_groceries:
-        for key in groceries:
-            if grocery.strip() in groceries[key]:
-                groceries[key].remove(grocery.strip())
-    added_groceries.clear()
-    return groceries
-
-
-def process_grocery_input(session_state: dict[str, Any],
-                          groceries: dict[str, list],
-                          categories: list = CATEGORIES) -> None:
-    """
-    Process the grocery input and add it to the default grocery list
-
-    Arguments:
-        session_state -- The Streamlit session state dictionary
-        groceries: Dictionary mapping categories to their grocery items
-        categories: List of valid grocery categories
+        None
 
     Returns:
         None
     """
-    cat = session_state.get("category", None)
-    grocery = session_state.get("tmp_grocery", "").strip()
+    groceries = st.session_state["groceries"]
+    category = st.session_state["category"]
+    if "new_grocery" in st.session_state:
+        grocery = st.session_state["new_grocery"]
+        if not groceries[category]:
+            st.session_state["groceries"][category] = []
+        if grocery not in groceries[category]:
+            st.session_state["groceries"][category].append(
+                grocery.title())
+
+
+def remove_groceries() -> None:
+    """
+    Remove grocery items from the default grocery list.
+
+    Arguments:
+        None
+
+    Returns:
+        None
+    """
+    added_groceries = st.session_state["added_groceries"]
+    groceries = st.session_state["groceries"]
+    for grocery in added_groceries:
+        for key in groceries.keys():
+            if grocery.strip() in groceries[key]:
+                st.session_state["groceries"][key].remove(grocery.strip())
+    st.session_state["added_groceries"].clear()
+
+
+def process_grocery_input(categories: list = CATEGORIES) -> None:
+    """
+    Process the grocery input and add it to the default grocery list
+
+    Keyword Arguments:
+        categories: List of valid grocery categories, default: CATEGORIES
+
+    Returns:
+        None
+    """
+    cat = st.session_state.get("category", None)
+    grocery = st.session_state.get("tmp_grocery", "").strip()
 
     if not grocery:
         return
@@ -221,26 +210,25 @@ def process_grocery_input(session_state: dict[str, Any],
         st.error("Please select a category")
         return
 
-    session_state["new_grocery"] = grocery
-    add_default_groceries(cat, session_state, groceries)
-    session_state["tmp_grocery"] = ""
+    st.session_state["new_grocery"] = grocery
+    add_default_groceries()
+    st.session_state["tmp_grocery"] = ""
     st.rerun()
 
 
 # UI Display Functions
-def display_grocery_category(category: str, groceries: dict[str, list],
-                             added_groceries: list[str]) -> None:
+def display_grocery_category(category) -> None:
     """
     Display the grocery category and items as checkboxes
 
     Arguments:
-        category -- The category name to display
-        groceries: Dictionary mapping categories to their grocery items
-        added_groceries: List to store selected grocery items
+        None
 
     Returns:
         None
     """
+    added_groceries = st.session_state["added_groceries"]
+    groceries = st.session_state["groceries"]
     if category in groceries:
         # Clean up the category name for the anchor
         anchor = clean_category_name(category)
@@ -266,8 +254,7 @@ def display_grocery_category(category: str, groceries: dict[str, list],
                 added_groceries.append(grocery)
 
 
-def split_categories(groceries: dict[str, list],
-                     categories: list = CATEGORIES) -> tuple[list[str],
+def split_categories(categories: list = CATEGORIES) -> tuple[list[str],
                                                              list[str],
                                                              list[str]]:
     """
@@ -288,6 +275,7 @@ def split_categories(groceries: dict[str, list],
         >>> split_categories(groceries)
         (['Fresh Produce'], ['Meat & Seafood'])
     """
+    groceries = st.session_state["groceries"]
     total_items = sum(len(groceries[cat]) for cat in categories)
     target_items = total_items // 3 + 3
 
@@ -311,8 +299,7 @@ def split_categories(groceries: dict[str, list],
 
 
 # Utility Functions
-def clear_session_state(session_state: dict[str, Any],
-                        added_groceries: list[str]) -> None:
+def clear_session_state() -> None:
     """
     Clear the session state for added groceries.
 
@@ -323,10 +310,11 @@ def clear_session_state(session_state: dict[str, Any],
     Returns:
         None
     """
-    keys_to_clear = [key for key in session_state.keys() if any(
+    added_groceries = st.session_state["added_groceries"]
+    keys_to_clear = [key for key in st.session_state.keys() if any(
         grocery.strip() in key for grocery in added_groceries)]
     for key in keys_to_clear:
-        session_state[key] = False
+        st.session_state[key] = False
 
 
 def clean_category_name(category: str) -> str:

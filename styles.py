@@ -19,11 +19,11 @@ MOBILE_STYLES = """
         }
         /* Make select box text smaller */
         .stSelectbox {
-            font-size: 0.8rem !important;
+            font-size: 0.75rem !important;
         }
         /* Make input text smaller */
         .stTextInput {
-            font-size: 0.8rem !important;
+            font-size: 0.75rem !important;
         }
     }
 
