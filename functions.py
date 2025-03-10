@@ -1,51 +1,21 @@
-import logging
 import streamlit as st
-from supabase import create_client
+from database import supabase
 from config import CATEGORIES, SUPABASE_DEFAULT_TABLE, SUPABASE_GROCERY_TABLE
+from logger_config import get_logger
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
-# Initialize Supabase client
-supabase_url = st.secrets["SUPABASE_URL"]
-supabase_key = st.secrets["SUPABASE_KEY"]
-supabase = create_client(supabase_url, supabase_key)
-
-
-def better_title(text: str) -> str:
-    """
-    Custom title function that properly handles apostrophes.
-
-    Arguments:
-        text -- The text to be formatted
-
-    Returns:
-        str: The formatted text
-
-    Example:
-        >>> better_title("sam's club")
-        "Sam's Club"
-    """
-    exceptions = ["'s", "'t", "'ll", "'re", "'ve", "'m", "'d"]
-    words = text.title().split()
-
-    for i, word in enumerate(words):
-        for exception in exceptions:
-            if exception.title() in word:
-                words[i] = word.replace(exception.title(), exception)
-
-    return " ".join(words)
 
 # Core File Operation Functions
-
-
 def get_list() -> list[str]:
     """
     Retrieve the grocery list from Supabase.
 
+    Arguments:
+        None
+
     Returns:
-        list[str]: A list of grocery items with proper title casing.
+        list[str] -- A list of grocery items with proper title casing.
                   Returns empty list if no data or error occurs.
 
     Raises:
@@ -76,7 +46,7 @@ def write_list() -> None:
     """
     Save the grocery list to Supabase.
 
-    Args:
+    Arguments:
         None
 
     Returns:
@@ -96,12 +66,15 @@ def write_list() -> None:
         st.error(f"Error in write_list: {str(e)}")
 
 
-def get_groceries() -> dict[str, list]:
+def get_groceries() -> dict[str, list[str]]:
     """
     Read a supabase table and return a dictionary with categories as keys and lists of grocery items as values.
 
+    Arguments:
+        None
+
     Returns:
-        A dictionary with categories as keys and lists of grocery items as values.
+        dict[str, list[str]] -- A dictionary with categories as keys and lists of grocery items as values.
 
     Raises:
         Shows Streamlit error message if database operation fails.
@@ -151,6 +124,20 @@ def write_groceries() -> None:
         st.error(f"Error in write_groceries: {str(e)}")
 
 
+def write_all() -> None:
+    """
+    Wrapper function to write both grocery list and groceries to database.
+
+    Arguments:
+        None
+
+    Returns:
+        None
+    """
+    write_list()
+    write_groceries()
+
+
 # Grocery Management Functions
 def add_default_groceries() -> None:
     """
@@ -192,12 +179,12 @@ def remove_groceries() -> None:
     st.session_state["added_groceries"].clear()
 
 
-def process_grocery_input(categories: list = CATEGORIES) -> None:
+def process_grocery_input(categories: list[str] = CATEGORIES) -> None:
     """
     Process the grocery input and add it to the default grocery list
 
     Keyword Arguments:
-        categories: List of valid grocery categories, default: CATEGORIES
+        categories -- List of valid grocery categories, default: CATEGORIES
 
     Returns:
         None
@@ -219,7 +206,7 @@ def process_grocery_input(categories: list = CATEGORIES) -> None:
 
 
 # UI Display Functions
-def display_grocery_category(category) -> None:
+def display_grocery_category(category: str) -> None:
     """
     Display the grocery category and items as checkboxes
 
@@ -256,9 +243,9 @@ def display_grocery_category(category) -> None:
                 added_groceries.append(grocery)
 
 
-def split_categories(categories: list = CATEGORIES) -> tuple[list[str],
-                                                             list[str],
-                                                             list[str]]:
+def split_categories(categories: list[str] = CATEGORIES) -> tuple[list[str],
+                                                                  list[str],
+                                                                  list[str]]:
     """
     Split categories into three columns based on total items.
 
@@ -269,14 +256,14 @@ def split_categories(categories: list = CATEGORIES) -> tuple[list[str],
         categories -- List of category names
 
     Returns:
-        Three lists of categories for three columns.
+        tuple[list[str], list[str], list[str]] -- Three lists of categories for three columns.
 
     Example:
         >>> groceries = {"Fresh Produce": ["Apples", "Bananas"],
                         "Meat & Seafood": ["Chicken", "Fish"]}
         >>> split_categories(groceries)
         (['Fresh Produce'], ['Meat & Seafood'])
-    """
+    """  # noqa
     groceries = st.session_state["groceries"]
     total_items = sum(len(groceries[cat]) for cat in categories)
     target_items = total_items // 3 + 3
@@ -301,13 +288,37 @@ def split_categories(categories: list = CATEGORIES) -> tuple[list[str],
 
 
 # Utility Functions
+def better_title(text: str) -> str:
+    """
+    Custom title function that properly handles apostrophes.
+
+    Arguments:
+        text -- The text to be formatted
+
+    Returns:
+        str -- The formatted text
+
+    Example:
+        >>> better_title("sam's club")
+        "Sam's Club"
+    """
+    exceptions = ["'s", "'t", "'ll", "'re", "'ve", "'m", "'d"]
+    words = text.title().split()
+
+    for i, word in enumerate(words):
+        for exception in exceptions:
+            if exception.title() in word:
+                words[i] = word.replace(exception.title(), exception)
+
+    return " ".join(words)
+
+
 def clear_session_state() -> None:
     """
     Clear the session state for added groceries.
 
     Arguments:
-        session_state -- The Streamlit session state dictionary
-        added_groceries -- List of grocery items that were added
+        None
 
     Returns:
         None
@@ -324,10 +335,10 @@ def clean_category_name(category: str) -> str:
     Clean the category name to be used as a URL path.
 
     Arguments:
-        category: The category name to clean
+        category -- The category name to clean
 
     Returns:
-        str: A cleaned category name with lowercase letters,
+        str -- A cleaned category name with lowercase letters,
              hyphens instead of spaces, and no ampersands
 
     Example:

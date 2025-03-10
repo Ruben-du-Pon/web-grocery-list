@@ -4,6 +4,9 @@ from typing import Literal
 from datetime import datetime
 from config import CATEGORIES, WRITE_INTERVAL
 from styles import MOBILE_STYLES
+from logger_config import get_logger
+
+logger = get_logger(__name__)
 
 
 # Set the page title, icon, and layout
@@ -32,7 +35,7 @@ if "last_write_time" not in st.session_state:
 
 def update_groceries(mode: Literal["list", "groceries"],
                      remove: bool,
-                     item: str = None) -> None:
+                     item: str | None = None) -> None:
     """
     Update the grocery list or groceries dictionary based on the mode.
 
@@ -41,36 +44,41 @@ def update_groceries(mode: Literal["list", "groceries"],
         remove -- Whether to remove the added groceries
 
     Keyword Arguments:
-        item -- The item to remove from the list, default: None
+        item -- The item to remove from the list, default = None
 
     Returns:
         None
     """
-    grocery_list = st.session_state["grocery_list"]
-    added_groceries = st.session_state["added_groceries"]
-    if mode == "list":
-        if remove:
-            st.session_state["grocery_list"].remove(item)
-        else:
-            for grocery in added_groceries:
-                if grocery not in grocery_list:
-                    st.session_state["grocery_list"].append(grocery.title())
+    try:
+        grocery_list = st.session_state["grocery_list"]
+        added_groceries = st.session_state["added_groceries"]
+        if mode == "list":
+            if remove:
+                st.session_state["grocery_list"].remove(item)
+            else:
+                for grocery in added_groceries:
+                    if grocery not in grocery_list:
+                        st.session_state["grocery_list"].append(
+                            grocery.title())
 
-            functions.clear_session_state()
-            st.session_state["added_groceries"].clear()
+                functions.clear_session_state()
+                st.session_state["added_groceries"].clear()
 
-    elif mode == "groceries":
-        if remove:
-            functions.remove_groceries()
-        else:
-            functions.process_grocery_input()
+        elif mode == "groceries":
+            if remove:
+                functions.remove_groceries()
+            else:
+                functions.process_grocery_input()
 
-    # Write the grocery list to the database every 5 minutes
-    if (datetime.now() - st.session_state["last_write_time"]).seconds > \
-            WRITE_INTERVAL:
-        functions.write_list()
-        functions.write_groceries()
-    st.session_state["last_write_time"] = datetime.now()
+        # Write the grocery list to the database every 5 minutes
+        if (datetime.now() - st.session_state["last_write_time"]).seconds > \
+                WRITE_INTERVAL:
+            functions.write_list()
+            functions.write_groceries()
+        st.session_state["last_write_time"] = datetime.now()
+    except Exception as e:
+        logger.error(f"Error in update_groceries: {e}")
+        st.error(f"Error in update_groceries: {str(e)}")
 
 
 # Expander to show the default grocery list and add items to the current list
