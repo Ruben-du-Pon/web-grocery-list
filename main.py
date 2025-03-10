@@ -109,18 +109,29 @@ with st.expander(label="Add grocery item"):
             functions.display_grocery_category(
                 category, groceries, added_groceries)
 
-    st.markdown('<div style="display: flex; gap: 10px; \
-                justify-content: flex-start; margin-top: 10px;">',
-                unsafe_allow_html=True)
-    col4, col5 = st.columns([1, 1])
-    with col4:
-        st.button(label="Add to list", key="add_button",
-                  on_click=add_groceries)
-    with col5:
-        st.button(label="Remove from standard list",
-                  key="remove_button",
-                  on_click=remove_groceries)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown(
+        '''
+    <div style="display: flex; gap: 10px; justify-content: flex-start; \
+        margin-top: 10px;">
+        <div style="flex: 0 0 auto;">
+            <div class="stButton">
+                {}
+            </div>
+        </div>
+        <div style="flex: 0 0 auto;">
+            <div class="stButton">
+                {}
+            </div>
+        </div>
+    </div>
+    '''.format(
+            st.button(label="Add to list", key="add_button",
+                      on_click=add_groceries),
+            st.button(label="Remove from standard list",
+                      key="remove_button", on_click=remove_groceries)
+        ),
+        unsafe_allow_html=True
+    )
 
 
 # Display the grocery list
