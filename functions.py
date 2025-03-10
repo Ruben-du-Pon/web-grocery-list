@@ -113,16 +113,18 @@ def get_groceries() -> dict[str, list]:
     try:
         response = supabase.table(SUPABASE_DEFAULT_TABLE).select("*").execute()
         if response.data:
-            groceries = response.data[0]['groceries']
-            groceries = {cat: sorted(better_title(item) for item in items)
-                         for cat, items in groceries.items()}
+            raw_groceries = response.data[0]['groceries']
+            # Create dictionary maintaining CATEGORIES order
+            groceries = {cat: sorted(better_title(item) for item in
+                                     raw_groceries.get(cat, []))
+                         for cat in CATEGORIES}
             return groceries
         else:
-            return {}
+            return {cat: [] for cat in CATEGORIES}
     except Exception as e:
         logger.error(f"Error in get_groceries: {e}")
         st.error(f"Error in get_groceries: {str(e)}")
-        return {}
+        return {cat: [] for cat in CATEGORIES}
 
 
 def write_groceries() -> None:
