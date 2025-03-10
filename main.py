@@ -17,7 +17,8 @@ st.markdown('<div id="top" style="position: absolute; top: 0;"></div>',
 grocery_list = functions.get_list()
 groceries = functions.get_groceries()
 added_groceries = []
-categories_col1, categories_col2 = functions.split_categories(groceries)
+categories_col1, categories_col2, categories_col3 = \
+    functions.split_categories(groceries)
 
 # Track last write time
 if 'last_write_time' not in st.session_state:
@@ -88,24 +89,30 @@ with st.expander(label="Add grocery item"):
     # Add custom CSS for mobile-friendly layout
     st.markdown(MOBILE_STYLES, unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        # Show the first half of the default grocery list with checkboxes
+        # Show the first third of the default grocery list with checkboxes
         for category in categories_col1:
             functions.display_grocery_category(
                 category, groceries, added_groceries)
 
     with col2:
-        # Show the second half of the default grocery list with checkboxes
+        # Show the second third of the default grocery list with checkboxes
         for category in categories_col2:
             functions.display_grocery_category(
                 category, groceries, added_groceries)
 
-    col3, col4 = st.columns(2)
     with col3:
+        # Show the last third of the default grocery list with checkboxes
+        for category in categories_col3:
+            functions.display_grocery_category(
+                category, groceries, added_groceries)
+
+    col4, col5 = st.columns(2)
+    with col4:
         st.button(label="Add to list", key="add_button",
                   on_click=add_groceries)
-    with col4:
+    with col5:
         st.button(label="Remove from standard list",
                   key="remove_button",
                   on_click=remove_groceries)

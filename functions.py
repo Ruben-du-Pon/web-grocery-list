@@ -268,9 +268,10 @@ def display_grocery_category(category: str, groceries: dict[str, list],
 
 def split_categories(groceries: dict[str, list],
                      categories: list = CATEGORIES) -> tuple[list[str],
+                                                             list[str],
                                                              list[str]]:
     """
-    Split categories into two columns based on total items.
+    Split categories into three columns based on total items.
 
     Arguments:
         groceries -- Dictionary of groceries with category names as keys
@@ -279,7 +280,7 @@ def split_categories(groceries: dict[str, list],
         categories -- List of category names
 
     Returns:
-        Two lists of categories for two columns.
+        Three lists of categories for three columns.
 
     Example:
         >>> groceries = {"Fresh Produce": ["Apples", "Bananas"],
@@ -288,10 +289,11 @@ def split_categories(groceries: dict[str, list],
         (['Fresh Produce'], ['Meat & Seafood'])
     """
     total_items = sum(len(groceries[cat]) for cat in categories)
-    target_items = total_items // 2
+    target_items = total_items // 3
 
     current_items = 0
     col1_categories = []
+    col2_categories = []
 
     for category in categories:
         items_in_category = len(groceries[category])
@@ -301,8 +303,17 @@ def split_categories(groceries: dict[str, list],
         else:
             break
 
-    col2_categories = [cat for cat in categories if cat not in col1_categories]
-    return col1_categories, col2_categories
+    current_items = 0
+    for category in categories:
+        items_in_category = len(groceries[category])
+        if current_items < target_items:
+            col2_categories.append(category)
+            current_items += items_in_category
+        else:
+            break
+
+    col3_categories = [cat for cat in categories if cat not in col1_categories]
+    return col1_categories, col2_categories, col3_categories
 
 
 # Utility Functions
