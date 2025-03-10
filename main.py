@@ -9,7 +9,8 @@ from styles import MOBILE_STYLES
 st.set_page_config(page_title="Grocery List", page_icon="🛒", layout="wide")
 
 # Add an anchor point at the top
-st.markdown('<div id="top" style="position: absolute; top: 0;"></div>',
+st.markdown('<div id="top" style="position: relative; \
+            top: -100px; margin-bottom: 100px;"></div>',
             unsafe_allow_html=True)
 
 
@@ -108,7 +109,10 @@ with st.expander(label="Add grocery item"):
             functions.display_grocery_category(
                 category, groceries, added_groceries)
 
-    col4, col5 = st.columns(2)
+    st.markdown('<div style="display: flex; gap: 10px; \
+                justify-content: flex-start; margin-top: 10px;">',
+                unsafe_allow_html=True)
+    col4, col5 = st.columns([1, 1])
     with col4:
         st.button(label="Add to list", key="add_button",
                   on_click=add_groceries)
@@ -116,6 +120,7 @@ with st.expander(label="Add grocery item"):
         st.button(label="Remove from standard list",
                   key="remove_button",
                   on_click=remove_groceries)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # Display the grocery list
