@@ -109,7 +109,7 @@ with st.expander(label="Add grocery item"):
             functions.display_grocery_category(
                 category, groceries, added_groceries)
 
-    col4, col5 = st.columns([0.1, 0.1])
+    col4, col5 = st.columns([0.01, 0.01])
     with col4:
         st.button(label="Add to list", key="add_button",
                   on_click=add_groceries, use_container_width=False)

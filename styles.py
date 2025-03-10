@@ -49,11 +49,18 @@ MOBILE_STYLES = """
         }
     }
     
-    /* Button container styling */
-    .stButton {
-        display: inline-block !important;
-        margin-right: 0 !important;
+    /* Force columns to be content-width */
+    [data-testid="column"] {
         width: auto !important;
+        flex: 0 0 auto !important;
+        min-width: auto !important;
+        padding: 0 5px !important;
+    }
+
+    /* Button styling */
+    .stButton {
+        width: auto !important;
+        margin: 0 !important;
     }
 
     .stButton > button {
@@ -61,17 +68,12 @@ MOBILE_STYLES = """
         white-space: nowrap !important;
     }
 
-    /* Remove default Streamlit column gaps */
-    .row-widget.stHorizontal {
-        gap: 10px !important;
-        flex-wrap: nowrap !important;
-    }
-
-    /* Adjust button spacing on mobile */
+    /* Mobile adjustments */
     @media (max-width: 600px) {
-        .stButton {
-            margin: 0 !important;
-            padding: 0 !important;
+        [data-testid="column"] {
+            width: auto !important;
+            min-width: auto !important;
+            flex: 0 0 auto !important;
         }
         .stButton > button {
             padding: 0.25rem 0.5rem !important;
