@@ -289,7 +289,7 @@ def split_categories(groceries: dict[str, list],
         (['Fresh Produce'], ['Meat & Seafood'])
     """
     total_items = sum(len(groceries[cat]) for cat in categories)
-    target_items = total_items // 3
+    target_items = total_items // 3 + 3
 
     current_items = 0
     col1_categories = []
