@@ -142,8 +142,17 @@ for grocery in st.session_state["grocery_list"]:
         update_groceries("list", True, grocery)
 
 streamlit_js_eval(
-    js_expressions="window.onbeforeunload = function() { \
-    window.parent.streamlit.setComponentValue('closing', true); }")
+    js_expressions="""
+    window.onbeforeunload = function(e) {
+        window.parent.streamlit.setComponentValue('closing', true);
+        // Show a confirmation dialog to give more time for the save
+        e.preventDefault();
+        e.returnValue = 'Changes will be saved before closing.';
+        return 'Changes will be saved before closing.';
+    }
+    """
+)
 
-if st.session_state.get('closing'):
-    functions.write_all()
+if st.session_state.get("closing"):
+    with st.spinner("Saving changes..."):
+        functions.write_all()
