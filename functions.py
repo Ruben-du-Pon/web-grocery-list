@@ -202,7 +202,6 @@ def process_grocery_input(categories: list[str] = CATEGORIES) -> None:
     st.session_state["new_grocery"] = grocery
     add_default_groceries()
     st.session_state["tmp_grocery"] = ""
-    st.rerun()
 
 
 # UI Display Functions

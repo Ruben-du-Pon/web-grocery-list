@@ -2,9 +2,9 @@ import streamlit as st
 import functions
 from typing import Literal
 from datetime import datetime
+from logger_config import get_logger
 from config import CATEGORIES, WRITE_INTERVAL
 from styles import MOBILE_STYLES
-from logger_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -139,4 +139,5 @@ for grocery in st.session_state["grocery_list"]:
     checkbox = st.checkbox(grocery, key=grocery)
     if checkbox:
         update_groceries("list", True, grocery)
-        st.rerun()
+
+st.on_close(functions.write_all)
