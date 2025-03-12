@@ -19,6 +19,8 @@ st.markdown('<div id="top" style="position: relative; \
 
 
 # Initialize data on app start
+if "expander_state" not in st.session_state:
+    st.session_state["expander_state"] = False
 if "grocery_list" not in st.session_state:
     st.session_state["grocery_list"] = functions.get_list()
 if "groceries" not in st.session_state:
@@ -80,7 +82,11 @@ def update_groceries(mode: Literal["list", "groceries"],
 
 
 # Expander to show the default grocery list and add items to the current list
-with st.expander(label="Add grocery item"):
+with st.expander(label="Add grocery item",
+                 expanded=st.session_state["expander_state"]):
+    # Store the current expander state
+    st.session_state["expander_state"] = True
+
     # Drop-down menu to select the category
     category = st.selectbox("Select category",
                             (CATEGORIES),
