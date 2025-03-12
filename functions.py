@@ -135,7 +135,7 @@ def background_write_list() -> None:
     Returns:
         None
     """
-    thread = threading.Thread(target=write_list, daemon=True)
+    thread = threading.Thread(target=write_list)
     thread.start()
 
 
@@ -149,7 +149,7 @@ def background_write_groceries() -> None:
     Returns:
         None
     """
-    thread = threading.Thread(target=write_groceries, daemon=True)
+    thread = threading.Thread(target=write_groceries)
     thread.start()
 
 
