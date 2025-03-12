@@ -90,9 +90,6 @@ with st.expander(label="Add grocery item"):
                             key="category",
                             placeholder="Select category")
 
-    if category:
-        st.session_state["category"] = category
-
     # Text input to add a new grocery item
     new_grocery_input = st.text_input(label=" ",
                                       placeholder="Add to standard grocery list",  # noqa
