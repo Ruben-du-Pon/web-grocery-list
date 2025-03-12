@@ -15,7 +15,7 @@ _groceries_write_queue = queue.Queue()
 
 
 def _write_worker(write_queue: queue.Queue,
-                  write_func: Callable[[], None]) -> None:
+                  write_func: Callable[[list[str]], None]) -> None:
     """
     Worker that processes writes from the queue.
 
@@ -33,7 +33,7 @@ def _write_worker(write_queue: queue.Queue,
             data = write_queue.get()
             logger.info(f"Worker {write_func.__name__} received data: {data}")
             if data is not None:
-                write_func()
+                write_func(data)
             write_queue.task_done()
         except Exception as e:
             logger.error(f"Error in write worker {write_func.__name__}: {e}")
@@ -78,12 +78,12 @@ def get_list() -> list[str]:
         return []
 
 
-def write_list() -> None:
+def write_list(grocery_list: list[str]) -> None:
     """
     Save the grocery list to Supabase.
 
     Arguments:
-        None
+        grocery_list -- The list of groceries to save.
 
     Returns:
         None
@@ -91,7 +91,6 @@ def write_list() -> None:
     Raises:
         Shows Streamlit error message if database operation fails.
     """
-    grocery_list = st.session_state["grocery_list"]
     try:
         logger.info(f"Attempting to write list: {grocery_list}")
         response = supabase.table(SUPABASE_GROCERY_TABLE).upsert({
@@ -138,20 +137,19 @@ def get_groceries() -> dict[str, list[str]]:
         return {cat: [] for cat in CATEGORIES}
 
 
-def write_groceries() -> None:
+def write_groceries(groceries: dict[str, list[str]]) -> None:
     """
     Write the groceries dictionary to a supabase table.
 
     Arguments:
-        None
+        groceries -- The groceries dictionary to write.
 
     Returns:
         None
 
     Raises:
         Shows Streamlit error message if database operation fails.
-    """  # noqa
-    groceries = st.session_state["groceries"]
+    """
     try:
         supabase.table(SUPABASE_DEFAULT_TABLE).upsert({
             'id': 1,  # Use a constant ID for the single record
@@ -173,7 +171,8 @@ def background_write_list() -> None:
         None
     """
     logger.info("Adding to list write queue...")
-    _list_write_queue.put(True)
+    grocery_list = st.session_state["grocery_list"]
+    _list_write_queue.put(grocery_list)
     logger.info(f"Queue size after put: {_list_write_queue.qsize()}")
 
 
@@ -188,7 +187,8 @@ def background_write_groceries() -> None:
         None
     """
     logger.info("Adding to groceries write queue...")
-    _groceries_write_queue.put(True)
+    groceries = st.session_state["groceries"]
+    _groceries_write_queue.put(groceries)
     logger.info(f"Queue size after put: {_groceries_write_queue.qsize()}")
 
 
