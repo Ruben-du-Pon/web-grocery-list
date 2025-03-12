@@ -3,9 +3,8 @@ import functions
 from typing import Literal
 from datetime import datetime
 from logger_config import get_logger
-from config import CATEGORIES, WRITE_INTERVAL
+from config import CATEGORIES
 from styles import MOBILE_STYLES
-from streamlit_js_eval import streamlit_js_eval
 
 logger = get_logger(__name__)
 
@@ -53,30 +52,28 @@ def update_groceries(mode: Literal["list", "groceries"],
     try:
         grocery_list = st.session_state["grocery_list"]
         added_groceries = st.session_state["added_groceries"]
+
         if mode == "list":
             if remove:
                 st.session_state["grocery_list"].remove(item)
+                functions.background_write_list()
             else:
                 for grocery in added_groceries:
                     if grocery not in grocery_list:
                         st.session_state["grocery_list"].append(
                             grocery.title())
-
+                functions.background_write_list()
                 functions.clear_session_state()
                 st.session_state["added_groceries"].clear()
 
         elif mode == "groceries":
             if remove:
                 functions.remove_groceries()
+                functions.background_write_groceries()
             else:
                 functions.process_grocery_input()
+                functions.background_write_groceries()
 
-        # Write the grocery list to the database every 5 minutes
-        if (datetime.now() - st.session_state["last_write_time"]).seconds > \
-                WRITE_INTERVAL:
-            functions.write_list()
-            functions.write_groceries()
-        st.session_state["last_write_time"] = datetime.now()
     except Exception as e:
         logger.error(f"Error in update_groceries: {e}")
         st.error(f"Error in update_groceries: {str(e)}")
@@ -140,19 +137,3 @@ for grocery in st.session_state["grocery_list"]:
     checkbox = st.checkbox(grocery, key=grocery)
     if checkbox:
         update_groceries("list", True, grocery)
-
-streamlit_js_eval(
-    js_expressions="""
-    window.onbeforeunload = function(e) {
-        window.parent.streamlit.setComponentValue('closing', true);
-        // Show a confirmation dialog to give more time for the save
-        e.preventDefault();
-        e.returnValue = 'Changes will be saved before closing.';
-        return 'Changes will be saved before closing.';
-    }
-    """
-)
-
-if st.session_state.get("closing"):
-    with st.spinner("Saving changes..."):
-        functions.write_all()

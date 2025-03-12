@@ -1,4 +1,5 @@
 import streamlit as st
+import threading
 from database import supabase
 from config import CATEGORIES, SUPABASE_DEFAULT_TABLE, SUPABASE_GROCERY_TABLE
 from logger_config import get_logger
@@ -124,9 +125,9 @@ def write_groceries() -> None:
         st.error(f"Error in write_groceries: {str(e)}")
 
 
-def write_all() -> None:
+def background_write_list() -> None:
     """
-    Wrapper function to write both grocery list and groceries to database.
+    Write the grocery list to database in a background thread.
 
     Arguments:
         None
@@ -134,8 +135,22 @@ def write_all() -> None:
     Returns:
         None
     """
-    write_list()
-    write_groceries()
+    thread = threading.Thread(target=write_list, daemon=True)
+    thread.start()
+
+
+def background_write_groceries() -> None:
+    """
+    Write the groceries dictionary to database in a background thread.
+
+    Arguments:
+        None
+
+    Returns:
+        None
+    """
+    thread = threading.Thread(target=write_groceries, daemon=True)
+    thread.start()
 
 
 # Grocery Management Functions
