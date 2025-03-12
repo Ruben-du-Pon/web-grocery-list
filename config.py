@@ -13,4 +13,4 @@ CSV_HEADERS = ["category", "grocery_items"]
 SUPABASE_DEFAULT_TABLE = "default_groceries"
 SUPABASE_GROCERY_TABLE = "grocery_list"
 
-WRITE_INTERVAL = 300
+WRITE_INTERVAL = 120
