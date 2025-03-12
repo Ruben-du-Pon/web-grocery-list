@@ -26,15 +26,17 @@ def _write_worker(write_queue: queue.Queue,
     Returns:
         None
     """
+    logger.info(f"Starting write worker for {write_func.__name__}")
     while True:
         try:
-            # Get data from queue, block until data is available
+            logger.info(f"Worker {write_func.__name__} waiting for data...")
             data = write_queue.get()
+            logger.info(f"Worker {write_func.__name__} received data: {data}")
             if data is not None:
                 write_func()
             write_queue.task_done()
         except Exception as e:
-            logger.error(f"Error in write worker: {e}")
+            logger.error(f"Error in write worker {write_func.__name__}: {e}")
         time.sleep(0.5)  # Small delay to prevent busy-waiting
 
 
@@ -91,10 +93,12 @@ def write_list() -> None:
     """
     grocery_list = st.session_state["grocery_list"]
     try:
-        supabase.table(SUPABASE_GROCERY_TABLE).upsert({
+        logger.info(f"Attempting to write list: {grocery_list}")
+        response = supabase.table(SUPABASE_GROCERY_TABLE).upsert({
             'id': 1,  # Use a constant ID for the single record
             'groceries': grocery_list
         }).execute()
+        logger.info(f"Write response: {response}")
     except Exception as e:
         logger.error(f"Error in write_list: {e}")
         st.error(f"Error in write_list: {str(e)}")
@@ -160,7 +164,7 @@ def write_groceries() -> None:
 
 def background_write_list() -> None:
     """
-    Write the grocery list to database in a background thread.
+    Queue a write operation for the grocery list.
 
     Arguments:
         None
@@ -168,12 +172,14 @@ def background_write_list() -> None:
     Returns:
         None
     """
+    logger.info("Adding to list write queue...")
     _list_write_queue.put(True)
+    logger.info(f"Queue size after put: {_list_write_queue.qsize()}")
 
 
 def background_write_groceries() -> None:
     """
-    Write the groceries dictionary to database in a background thread.
+    Queue a write operation for the groceries dictionary.
 
     Arguments:
         None
@@ -181,7 +187,9 @@ def background_write_groceries() -> None:
     Returns:
         None
     """
+    logger.info("Adding to groceries write queue...")
     _groceries_write_queue.put(True)
+    logger.info(f"Queue size after put: {_groceries_write_queue.qsize()}")
 
 
 # Grocery Management Functions
