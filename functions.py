@@ -319,7 +319,7 @@ def split_categories(categories: list[str] = CATEGORIES) -> tuple[list[str],
     """  # noqa
     groceries = st.session_state["groceries"]
     total_items = sum(len(groceries[cat]) for cat in categories)
-    target_items = total_items // 3 + 3
+    target_items = total_items / 3
 
     current_items = 0
     col1_categories = []
