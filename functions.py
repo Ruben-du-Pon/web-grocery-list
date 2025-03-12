@@ -1,13 +1,46 @@
 import streamlit as st
 import threading
+import queue
+import time
+from typing import Callable
 from database import supabase
 from config import CATEGORIES, SUPABASE_DEFAULT_TABLE, SUPABASE_GROCERY_TABLE
 from logger_config import get_logger
 
 logger = get_logger(__name__)
 
+# Create thread-safe queues for pending writes
+_list_write_queue = queue.Queue()
+_groceries_write_queue = queue.Queue()
+
+
+def _write_worker(write_queue: queue.Queue,
+                  write_func: Callable[[], None]) -> None:
+    """
+    Worker that processes writes from the queue.
+
+    Arguments:
+        write_queue -- The queue to read from
+        write_func -- The function to call for writing
+
+    Returns:
+        None
+    """
+    while True:
+        try:
+            # Get data from queue, block until data is available
+            data = write_queue.get()
+            if data is not None:
+                write_func()
+            write_queue.task_done()
+        except Exception as e:
+            logger.error(f"Error in write worker: {e}")
+        time.sleep(0.5)  # Small delay to prevent busy-waiting
+
 
 # Core File Operation Functions
+
+
 def get_list() -> list[str]:
     """
     Retrieve the grocery list from Supabase.
@@ -135,8 +168,7 @@ def background_write_list() -> None:
     Returns:
         None
     """
-    thread = threading.Thread(target=write_list)
-    thread.start()
+    _list_write_queue.put(True)
 
 
 def background_write_groceries() -> None:
@@ -149,8 +181,7 @@ def background_write_groceries() -> None:
     Returns:
         None
     """
-    thread = threading.Thread(target=write_groceries)
-    thread.start()
+    _groceries_write_queue.put(True)
 
 
 # Grocery Management Functions
@@ -364,3 +395,19 @@ def clean_category_name(category: str) -> str:
     category = category.replace("&", "")
     category = category.replace("--", "-")
     return category
+
+
+# Start worker threads
+_list_worker = threading.Thread(
+    target=_write_worker,
+    args=(_list_write_queue, write_list),
+    daemon=True
+)
+_list_worker.start()
+
+_groceries_worker = threading.Thread(
+    target=_write_worker,
+    args=(_groceries_write_queue, write_groceries),
+    daemon=True
+)
+_groceries_worker.start()
