@@ -5,6 +5,7 @@ from datetime import datetime
 from logger_config import get_logger
 from config import CATEGORIES, WRITE_INTERVAL
 from styles import MOBILE_STYLES
+from streamlit_js_eval import streamlit_js_eval
 
 logger = get_logger(__name__)
 
@@ -140,4 +141,9 @@ for grocery in st.session_state["grocery_list"]:
     if checkbox:
         update_groceries("list", True, grocery)
 
-st.on_close(functions.write_all)
+streamlit_js_eval(
+    js_expressions="window.onbeforeunload = function() { \
+    window.parent.streamlit.setComponentValue('closing', true); }")
+
+if st.session_state.get('closing'):
+    functions.write_all()
