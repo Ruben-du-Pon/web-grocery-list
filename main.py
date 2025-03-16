@@ -57,7 +57,10 @@ def update_groceries(mode: Literal["list", "groceries"],
 
         if mode == "list":
             if remove:
+                print(f"Removing {item} from list")
+                print(f"Current list: {grocery_list}")
                 st.session_state["grocery_list"].remove(item)
+                print(f"Updated list: {grocery_list}")
                 functions.background_write_list()
             else:
                 for grocery in added_groceries:
@@ -142,4 +145,6 @@ st.title("Groceries")
 for grocery in st.session_state["grocery_list"]:
     checkbox = st.checkbox(grocery, key=grocery)
     if checkbox:
+        st.session_state["expander_state"] = False
         update_groceries("list", True, grocery)
+        st.rerun()
