@@ -264,7 +264,7 @@ def display_grocery_category(category: str) -> None:
     Display the grocery category and items as checkboxes
 
     Arguments:
-        None
+        category: the name of the category to be displayed
 
     Returns:
         None
@@ -313,9 +313,10 @@ def split_categories(categories: list[str] = CATEGORIES) -> tuple[list[str],
 
     Example:
         >>> groceries = {"Fresh Produce": ["Apples", "Bananas"],
-                        "Meat & Seafood": ["Chicken", "Fish"]}
+                        "Meat & Seafood": ["Chicken", "Fish"],
+                        "Dairy Products": ["Milk", "Butter"]}
         >>> split_categories(groceries)
-        (['Fresh Produce'], ['Meat & Seafood'])
+        (['Fresh Produce'], ['Meat & Seafood'], ['Dairy Products'])
     """  # noqa
     groceries = st.session_state["groceries"]
     total_items = sum(len(groceries[cat]) for cat in categories)
