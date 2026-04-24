@@ -57,10 +57,7 @@ def update_groceries(mode: Literal["list", "groceries"],
 
         if mode == "list":
             if remove:
-                print(f"Removing {item} from list")
-                print(f"Current list: {grocery_list}")
                 st.session_state["grocery_list"].remove(item)
-                print(f"Updated list: {grocery_list}")
                 functions.background_write_list()
             else:
                 for grocery in added_groceries:
