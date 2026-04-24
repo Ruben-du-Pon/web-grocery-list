@@ -13,6 +13,32 @@ logger = get_logger(__name__)
 _list_write_queue = queue.Queue()
 _groceries_write_queue = queue.Queue()
 
+@st.cache_resource
+def _start_write_workers() -> tuple[queue.Queue, queue.Queue]:
+    """
+    Start background write worker threads.
+    Uses st.cache_resource to ensure threads are only started once.
+
+    Returns:
+        tuple[queue.Queue, queue.Queue] -- The list and groceries write queues.
+    """
+    list_queue = queue.Queue()
+    groceries_queue = queue.Queue()
+
+    threading.Thread(
+        target=_write_worker,
+        args=(list_queue, write_list),
+        daemon=True
+    ).start()
+
+    threading.Thread(
+        target=_write_worker,
+        args=(groceries_queue, write_groceries),
+        daemon=True
+    ).start()
+
+    logger.info("Write worker threads started.")
+    return list_queue, groceries_queue
 
 def _write_worker(write_queue: queue.Queue,
                   write_func: Callable[[list[str]], None]) -> None:
@@ -407,16 +433,5 @@ def clean_category_name(category: str) -> str:
 
 
 # Start worker threads
-_list_worker = threading.Thread(
-    target=_write_worker,
-    args=(_list_write_queue, write_list),
-    daemon=True
-)
-_list_worker.start()
 
-_groceries_worker = threading.Thread(
-    target=_write_worker,
-    args=(_groceries_write_queue, write_groceries),
-    daemon=True
-)
-_groceries_worker.start()
+_list_write_queue, _groceries_write_queue = _start_write_workers()
